@@ -1,0 +1,71 @@
+name: Validate bootstrap.json
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate JSON syntax
+        run: python3 -m json.tool bootstrap.json > /dev/null
+
+      - name: Validate structure
+        run: |
+          python3 << 'SCRIPT'
+          import json
+          import sys
+          import re
+
+          with open("bootstrap.json") as f:
+              data = json.load(f)
+
+          if not isinstance(data, dict):
+              print("ERROR: root must be an object")
+              sys.exit(1)
+
+          if "nodes" not in data:
+              print("ERROR: missing 'nodes' field")
+              sys.exit(1)
+
+          if not isinstance(data["nodes"], list):
+              print("ERROR: 'nodes' must be an array")
+              sys.exit(1)
+
+          if len(data["nodes"]) == 0:
+              print("ERROR: 'nodes' must not be empty")
+              sys.exit(1)
+
+          for i, node in enumerate(data["nodes"]):
+              if not isinstance(node, dict):
+                  print(f"ERROR: node[{i}] must be an object")
+                  sys.exit(1)
+
+              if "host" not in node or "port" not in node:
+                  print(f"ERROR: node[{i}] must have 'host' and 'port' fields")
+                  sys.exit(1)
+
+              if not isinstance(node["host"], str) or len(node["host"]) == 0:
+                  print(f"ERROR: node[{i}].host must be a non-empty string")
+                  sys.exit(1)
+
+              if not isinstance(node["port"], int) or node["port"] < 1 or node["port"] > 65535:
+                  print(f"ERROR: node[{i}].port must be an integer between 1 and 65535")
+                  sys.exit(1)
+
+          # Check for duplicates
+          seen = set()
+          for i, node in enumerate(data["nodes"]):
+              key = f"{node['host']}:{node['port']}"
+              if key in seen:
+                  print(f"ERROR: duplicate node[{i}]: {key}")
+                  sys.exit(1)
+              seen.add(key)
+
+          print(f"OK: {len(data['nodes'])} valid node(s), no duplicates")
+          SCRIPT

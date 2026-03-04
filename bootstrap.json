@@ -1,0 +1,6 @@
+{
+  "nodes": [
+    {"host": "talerseed01.taler.tech", "port": 23153},
+    {"host": "talerseed02.taler.tech", "port": 23153}
+  ]
+}
