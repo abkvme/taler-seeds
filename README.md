@@ -12,7 +12,7 @@ Taler nodes fetch this list on startup to supplement hardcoded seed addresses, i
 {
   "nodes": [
     {"host": "example.com", "port": 23153},
-    {"host": "1.2.3.4", "port": 23153}
+    {"host": "93.125.84.156", "port": 23153}
   ]
 }
 ```
